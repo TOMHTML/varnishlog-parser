@@ -58,8 +58,8 @@ This is a week-end project, home alone, so it's not fully tested and there are o
 
 Special thanks to :
 
- * Poul-Henning Kamp and all the (Varnish Software)[https://www.varnish-software.com/] team
+ * Poul-Henning Kamp and all the [Varnish Software](https://www.varnish-software.com/) team
  * Shohei Tanaka for the [Vsltrans](http://vsltrans.varnish.jp/) project
- * Websequencediagrams.com and its nice (and free!) API
+ * [Websequencediagrams.com](https://www.websequencediagrams.com/) and its nice (and free!) API
  * [Kint](http://raveren.github.io/kint/), `print_r()` on steroids
 
