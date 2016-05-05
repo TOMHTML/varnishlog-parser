@@ -42,7 +42,6 @@ Feel free to submit pull requests. The code is documented, but the logic is stil
 
 This is a week-end project, home alone, so it's not fully tested and there are obviously many hidden bugs. Nevertheless, main unusual use cases have been tested (ESI, restarts, truncated file, synth response, custom vmods, ...).
 
-* The sequence diagram font size is too small when there are too many transactions.
 * In some edge cases, transactions order might not be fully respected.
 
 

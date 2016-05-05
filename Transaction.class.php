@@ -347,6 +347,105 @@ class Request extends DefaultTransaction {
     if($write_to_cache)
       unset($this->cache["headers"][$header_name]);
   }
+
+  /**
+   * Trim a request URL output to a max length.
+   *
+   * @param  String  $url      The request.
+   * @param  Integer $max_char Max length.
+   * @return String            Truncated URL.
+   */
+  protected function trimUrl($url, $max_char=70){
+    $placeholder = '[...]';
+    // Return if it's already OK
+    while (strlen($url) > $max_char) {
+      // First, explode URL parts
+      $parts = parse_url($url);
+      // Then, delete always useless data
+      // That is to say: everything that is not
+      // path or query.
+      if(count($parts) > 2){
+        unset($parts['scheme']);
+        unset($parts['host']);
+        unset($parts['fragment']);
+        unset($parts['port']);
+        unset($parts['user']);
+        unset($parts['pass']);
+        $url = $this->unparseUrl($parts);
+        continue;
+      }
+      // Sort by length
+      uasort($parts, function($a,$b){
+        return strlen($b) - strlen($a);
+      });
+      // Get biggest offender
+      reset($parts);
+      $key_for_long_part = key($parts);
+      switch ($key_for_long_part) {
+        case 'path':
+          $exploded_path = explode('/', $parts['path']);
+          // Do not count already trimmed path
+          $exploded_path = array_filter($exploded_path,function($a){return $a != '[...]';});
+          // $exploded_path[0] is always empty because paths begin with '/'
+          if(count($exploded_path) <= 2){
+            // There is no directory.
+            // keep extension
+            $pos = strrpos($parts['path'],'.');
+            if($pos !== FALSE){
+              $extension = substr($parts['path'],$pos);
+              $basename = substr($parts['path'],0,$pos);
+              $parts['path'] = substr($basename,0,20-strlen($placeholder)).$placeholder.$extension;
+            }
+            else {
+              // No extension
+              $parts['path'] = substr($parts['path'],0,20).$placeholder;
+            }
+          }
+          else {
+            // Replace the last but one directory with placeholder
+            $keys = array_keys($exploded_path);
+            $exploded_path[$keys[count($keys)-2]] = $placeholder;
+            $parts['path'] = implode('/', $exploded_path);
+          }
+          break;
+        case 'query':
+          if(strpos($parts['query'], '=') !== FALSE
+            && strpos($parts['query'], $placeholder) === FALSE){
+            $parts['query'] = preg_replace('/^([^=]+)=.*$/', '$1='.$placeholder, $parts['query']);
+          }
+          else {
+            $parts['query'] = substr($parts['query'],0,6).$placeholder;
+          }
+          break;
+        default: // Bug ?
+          return $this->unparseUrl($parts);
+          break;
+      }
+      $url = $this->unparseUrl($parts);
+    }
+    return $url;
+  }
+
+  /**
+   * Convert the result of "parse_url" into
+   * the original URL.
+   * @source  :
+   *   http://php.net/manual/fr/function.parse-url.php#106731
+   * @param  Array $parsed_url Parts of URL.
+   * @return String            Complete URL.
+   */
+  protected function unparseUrl($parsed_url=array()) {
+    $scheme   = isset($parsed_url['scheme']) ? $parsed_url['scheme'] . '://' : '';
+    $host     = isset($parsed_url['host']) ? $parsed_url['host'] : '';
+    $port     = isset($parsed_url['port']) ? ':' . $parsed_url['port'] : '';
+    $user     = isset($parsed_url['user']) ? $parsed_url['user'] : '';
+    $pass     = isset($parsed_url['pass']) ? ':' . $parsed_url['pass']  : '';
+    $pass     = ($user || $pass) ? "$pass@" : '';
+    $path     = isset($parsed_url['path']) ? $parsed_url['path'] : '';
+    $query    = isset($parsed_url['query']) ? '?' . $parsed_url['query'] : '';
+    $fragment = isset($parsed_url['fragment']) ? '#' . $parsed_url['fragment'] : '';
+    return "$scheme$user$pass$host$port$path$query$fragment";
+  }
 }
 
 
@@ -385,10 +484,10 @@ class ClientRequest extends Request {
     $ret = '';
     if(is_null($parent_name))
       $parent_name = $this->parent;
-    $ret .= $parent_name."->Varnish:".$this->query['Method']." ".$this->query['URL']." (".$this->vxid.")";
+    $ret .= $parent_name."->Varnish:".$this->query['Method']." ".$this->trimUrl($this->query['URL'])." (".$this->vxid.")";
     if($this->isCacheQueried()){
       $ret .= "\n";
-      $ret .= "Varnish->Cache:".$this->cache['Method']." ".$this->cache['URL'];
+      $ret .= "Varnish->Cache:".$this->cache['Method']." ".$this->trimUrl($this->cache['URL']);
       $ret .= "\n";
       $ret .= "Cache->Varnish:".$this->getCacheResponse();
       $ret .= "\n";
@@ -431,7 +530,7 @@ class BackendRequest extends Request {
    * @see  parent
    */
   function toStringRequest($parent_name=null){
-    return "Varnish->Backend:".$this->query['Method']." ".$this->query['URL']." (".$this->vxid.")";
+    return "Varnish->Backend:".$this->query['Method']." ".$this->trimUrl($this->query['URL'])." (".$this->vxid.")";
   }
 
   /**
