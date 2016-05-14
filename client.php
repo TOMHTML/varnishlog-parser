@@ -4,6 +4,7 @@ include 'VarnishlogParser.class.php';
 include 'kint/Kint.class.php';
 
 $FILEPATH = "";
+$FILENAME = "";
 $error = "";
 $transactions_list = "";
 $transactions_string = "";
@@ -16,10 +17,17 @@ try {
     throw new Exception("Please, include Kint library.");
 
   // Check input file
-  if(empty($_REQUEST["filepath"]))
+  if(!empty($_FILES["fileselected"]['tmp_name']) && !$_FILES["fileselected"]['error']){
+    $FILEPATH = $_FILES["fileselected"]['tmp_name'];
+    $FILENAME = $_FILES["fileselected"]['name'];
+  }
+  elseif(!empty($_REQUEST["filepath"])){
+    $FILEPATH = $_REQUEST["filepath"]; // Obvious XSS flaw here
+    $FILENAME = $FILEPATH;
+  }
+  else {
     throw new InvalidArgumentException("No filepath provided");
-
-  $FILEPATH = $_REQUEST["filepath"]; // Obvious XSS flaw here
+  }
 
   // Parse Varnishlog file
   $transactions_list = VarnishlogParser\VarnishlogParser::parse($FILEPATH);
@@ -41,7 +49,7 @@ catch(\Exception $e){
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Varnishlog analysis for : <?php echo $FILEPATH ?></title>
+  <title>Varnishlog analysis for : <?php echo $FILENAME ?></title>
   <!-- Latest compiled and minified CSS -->
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -50,8 +58,8 @@ catch(\Exception $e){
   <div class="container">
     <div class="jumbotron">
       <h1>Varnishlog Analysis</h1>
-      <?php if($FILEPATH): ?>
-        <p><em><?php echo $FILEPATH // Obvious XSS flaw here ?></em></p>
+      <?php if($FILENAME): ?>
+        <p><em><?php echo $FILENAME // Obvious XSS flaw here ?></em></p>
         <form method="get" action="<?php echo $_SERVER['PHP_SELF']?>">
           <button type="submit" class="btn btn-primary">Try another file</button>
         </form>
@@ -60,10 +68,18 @@ catch(\Exception $e){
 
     <?php if(empty($FILEPATH)) : ?>
       <!-- No filepath provided -->
-      <form method="get" action="<?php echo $_SERVER['PHP_SELF']?>">
+      <form class="form-horizontal" method="post" action="<?php echo $_SERVER['PHP_SELF']?>" enctype="multipart/form-data">
         <div class="form-group">
-          <label for="filepath">Path of varnishlog file</label>
-          <input type="textfield" class="form-control" id="filepath" name="filepath" placeholder="./examples/vsltrans_gist.log">
+          <label for="filepath" class="col-sm-4 control-label">Local path of varnishlog file...</label>
+          <div class="col-sm-8">
+            <input type="textfield" class="form-control" id="filepath" name="filepath" placeholder="./examples/vsltrans_gist.log">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="fileselected" class="col-sm-4 control-label">...or upload a file</label>
+          <div class="col-sm-8">
+            <input type="file" id="fileselected" name="fileselected">
+          </div>
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>
         <button type="button" class="btn" onclick="this.form.filepath.value='./examples/vsltrans_gist.log';this.form.submit();">See example</button>
