@@ -1,6 +1,6 @@
 # Varnishlog Parser
 
-A stand-alone tool to transform a Varnish output file into a simple diagram sequence.
+A standalone tool to transform a Varnish output file into a simple diagram sequence.
 
 ![Screenshot](images/example_output.png)
 
