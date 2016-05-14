@@ -7,8 +7,8 @@ A standalone tool to transform a Varnish output file into a simple diagram seque
 ## Requirements
 
  * Varnish 4.1
- * PHP 5 (tested with PHP 5.6)
- * Kink library (loaded as Git submodule)
+ * PHP 5 (tested with PHP 5.6) or PHP 7.0
+ * cURL (`sudo apt-get install php5-curl` or `php-curl`)
  * Internet access to websequencediagrams.com (generated diagram)
 
 ## Installation and usage
@@ -25,7 +25,7 @@ Then, **install** this tool:
  * `git clone <this URL>` varnishlog-parser
  * `cd varnishlog-parser`
  * `git submodule init`
- * `git submodule update`
+ * `git submodule update`, to download the Kint library
 
 Finally, **execute** the web client:
 
