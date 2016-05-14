@@ -472,6 +472,8 @@ class ClientRequest extends Request {
       return "HIT";
     if(isset($this->vcl_calls['PASS']))
       return "PASS";
+    if(isset($this->vcl_calls['MISS']))
+      return "MISS";
     return "???";
   }
 
