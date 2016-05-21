@@ -150,6 +150,8 @@ class VarnishlogParser {
    */
   private static function toStringTransaction($vxid, $transactions){
     $ret = '';
+    if(empty($transactions[$vxid]))
+      return $ret; // Incomplete transaction ?
     $transaction = $transactions[$vxid];
     $name = $transaction->getName();
     $ret .= $transaction->toStringRequest($name)."\n";
