@@ -33,6 +33,8 @@ try {
   $transactions_list = VarnishlogParser\VarnishlogParser::parse($FILEPATH);
   // Output text representation of transactions
   $transactions_string = VarnishlogParser\VarnishlogParser::simpleAnalysis($transactions_list,1);
+  // Reorder for future use
+  ksort($transactions_list);
   // Get URL for sequence diagram
   $transactions_diagram_url = VarnishlogParser\VarnishlogParser::getSequenceDiagram($transactions_string);
   if(!$transactions_diagram_url)
