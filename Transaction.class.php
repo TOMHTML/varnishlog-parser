@@ -528,14 +528,22 @@ class BackendRequest extends Request {
    * @see  parent
    */
   function toStringRequest($parent_name=null){
-    return "Varnish->Backend:".$this->query['Method']." ".$this->trimUrl($this->query['URL'])." (".$this->vxid.")";
+    if($this->creation_reason == "bgfetch")
+      $line = "-->";
+    else
+      $line = "->";
+    return "Varnish".$line."Backend:".$this->query['Method']." ".$this->trimUrl($this->query['URL'])." (".$this->vxid.")";
   }
 
   /**
    * @see  parent
    */
   function toStringResponse($parent_name=null){
-    return "Backend->Varnish:".$this->response['Status']." ".$this->response['Reason']." (".$this->vxid.")";
+    if($this->creation_reason == "bgfetch")
+      $line = "-->";
+    else
+      $line = "->";
+    return "Backend".$line."Varnish:".$this->response['Status']." ".$this->response['Reason']." (".$this->vxid.")";
   }
 
   /**
