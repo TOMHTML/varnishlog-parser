@@ -357,40 +357,42 @@ class Request extends DefaultTransaction {
    */
   protected function trimUrl($url, $max_char=70){
     $placeholder = '[...]';
+    if(strlen($url) <= $max_char)
+      return $url;
+    $original_url = $url;
+    // First, explode URL parts to get a simple URL
+    $parts = array('path' => '','query' => '');
+    $parts['path'] = parse_url($url,PHP_URL_PATH);
+    $parts['query'] = parse_url($url,PHP_URL_QUERY);
+    $url = $this->unparseUrl($parts);
     // Return if it's already OK
+    $counter = 0;
     while (strlen($url) > $max_char) {
-      // First, explode URL parts
-      $parts = parse_url($url);
-      // Then, delete always useless data
-      // That is to say: everything that is not
-      // path or query.
-      if(count($parts) > 2){
-        unset($parts['scheme']);
-        unset($parts['host']);
-        unset($parts['fragment']);
-        unset($parts['port']);
-        unset($parts['user']);
-        unset($parts['pass']);
-        $url = $this->unparseUrl($parts);
-        continue;
+      $counter++;
+      if($counter > 20){
+        // In order to prevent any infinite loop
+        // please post an issue on Github if you see
+        // the following error!
+        trigger_error("Failed to trim the following URL : $original_url", E_USER_WARNING);
+        return $url;
       }
       // Sort by length
-      uasort($parts, function($a,$b){
-        return strlen($b) - strlen($a);
-      });
-      // Get biggest offender
-      reset($parts);
-      $key_for_long_part = key($parts);
+      $key_for_long_part = strlen($parts['path']) > strlen($parts['query']) ? 'path' : 'query';
       switch ($key_for_long_part) {
         case 'path':
           $exploded_path = explode('/', $parts['path']);
           // Do not count already trimmed path
-          $exploded_path = array_filter($exploded_path,function($a){return $a != '[...]';});
+          foreach ($exploded_path as $exploded_path_key => $exploded_path_value) {
+            // beacause "array_filter" with anonymous function is very slow
+            if($exploded_path_value == $placeholder)
+              unset($exploded_path[$exploded_path_key]);
+          }
+          unset($exploded_path_key,$exploded_path_value);
           // $exploded_path[0] is always empty because paths begin with '/'
           if(count($exploded_path) <= 2){
             // There is no directory.
             // keep extension
-            $pos = strrpos($parts['path'],'.');
+            $pos = strrpos(end($exploded_path),'.');
             if($pos !== FALSE){
               $extension = substr($parts['path'],$pos);
               $basename = substr($parts['path'],0,$pos);
@@ -418,7 +420,7 @@ class Request extends DefaultTransaction {
           }
           break;
         default: // Bug ?
-          return $this->unparseUrl($parts);
+          return $url;
           break;
       }
       $url = $this->unparseUrl($parts);
@@ -435,16 +437,10 @@ class Request extends DefaultTransaction {
    * @return String            Complete URL.
    */
   protected function unparseUrl($parsed_url=array()) {
-    $scheme   = isset($parsed_url['scheme']) ? $parsed_url['scheme'] . '://' : '';
-    $host     = isset($parsed_url['host']) ? $parsed_url['host'] : '';
-    $port     = isset($parsed_url['port']) ? ':' . $parsed_url['port'] : '';
-    $user     = isset($parsed_url['user']) ? $parsed_url['user'] : '';
-    $pass     = isset($parsed_url['pass']) ? ':' . $parsed_url['pass']  : '';
-    $pass     = ($user || $pass) ? "$pass@" : '';
-    $path     = isset($parsed_url['path']) ? $parsed_url['path'] : '';
-    $query    = isset($parsed_url['query']) ? '?' . $parsed_url['query'] : '';
-    $fragment = isset($parsed_url['fragment']) ? '#' . $parsed_url['fragment'] : '';
-    return "$scheme$user$pass$host$port$path$query$fragment";
+    $ret  = '';
+    $ret .= isset($parsed_url['path']) ? $parsed_url['path'] : '';
+    $ret .= isset($parsed_url['query']) ? '?' . $parsed_url['query'] : '';
+    return $ret;
   }
 }
 
