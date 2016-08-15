@@ -31,6 +31,8 @@ try {
 
   // Parse Varnishlog file
   $transactions_list = VarnishlogParser\VarnishlogParser::parse($FILEPATH);
+  if(empty($transactions_list))
+    throw new Exception("Unable to parse the provided file: did you use <code>varnishlog -g raw</code> to generate this file?", 1);
   // Output text representation of transactions
   $transactions_string = VarnishlogParser\VarnishlogParser::simpleAnalysis($transactions_list,1);
   // Reorder for future use

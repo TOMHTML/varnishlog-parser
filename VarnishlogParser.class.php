@@ -44,6 +44,10 @@ class VarnishlogParser {
         // direction : b = backend, c = client
         // payload : information about tag
         list ($vxid, $tag, $direction, $payload) = $line;
+        if(!$vxid){
+          // Malformed line => wrong output format?
+          continue;
+        }
         if(empty(self::$list_vxids[$vxid])){
           // New transaction
           self::$list_vxids[$vxid] = self::factory($vxid, $tag, $direction, $payload);
