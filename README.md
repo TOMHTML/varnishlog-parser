@@ -53,6 +53,11 @@ This is a week-end project, home alone, so it's not fully tested and there are o
 * Add timestamps
 * Complete documentation
 
+
+## License
+
+See the [LICENSE](LICENSE.txt) file for license rights and limitations (MIT).
+
 ## Thanks
 
 Special thanks to :
