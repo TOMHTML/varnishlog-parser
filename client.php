@@ -82,11 +82,16 @@ catch(\Exception $e){
           <div class="col-sm-8">
             <input type="textfield" class="form-control" id="filepath" name="filepath" placeholder="./examples/vsltrans_gist.log">
           </div>
-        </div>
-        <div class="form-group">
+
           <label for="fileselected" class="col-sm-4 control-label">...or upload a file</label>
           <div class="col-sm-8">
             <input type="file" id="fileselected" name="fileselected">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="show_debug" class="col-sm-4 control-label">Display debug data</label>
+          <div class="col-sm-8">
+            <input type="checkbox" id="show_debug" name="show_debug" value="1">
           </div>
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>
@@ -107,17 +112,18 @@ catch(\Exception $e){
         </p>
       </div>
 
-      <div class="container">
-        <h2>All transactions recorded</h2>
-        <?php \Kint::dump( $transactions_list, "Transaction list" ); ?>
-      </div>
+      <?php if(!empty($_REQUEST['show_debug']) && $_REQUEST['show_debug'] == "1"): ?>
+        <div class="container">
+          <h2>All transactions recorded</h2>
+          <?php \Kint::dump( $transactions_list, "Transaction list" ); ?>
+        </div>
 
-      <div class="container">
-        <h2>Simple representation</h2>
-        <pre class="pre-scrollable"><?php print $transactions_string ?></pre>
-      </div>
-
-    <?php endif; ?>
+        <div class="container">
+          <h2>Simple representation</h2>
+          <pre class="pre-scrollable"><?php print $transactions_string ?></pre>
+        </div>
+      <?php endif; // end display debugs ?>
+    <?php endif; // end display results ?>
   </div>
 </body>
 </html>
