@@ -1,7 +1,7 @@
 <?php
 
 include 'VarnishlogParser.class.php';
-include 'kint/Kint.class.php';
+include 'kint/build/kint.php';
 
 $FILEPATH = "";
 $FILENAME = "";
@@ -15,6 +15,9 @@ try {
     throw new Exception("Please, include VarnishlogParser in this directory!");
   if(!class_exists("\Kint"))
     throw new Exception("Please, include Kint library.");
+  // Configure Kint
+  \Kint_Renderer_Rich::$access_paths = false;
+  \Kint::$display_called_from = false;
 
   // Check input file
   if(!empty($_FILES["fileselected"]['tmp_name']) && !$_FILES["fileselected"]['error']){
